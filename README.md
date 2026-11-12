@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache 2.0"></a>
-  <a href="https://github.com/sqzer-x/ommp"><img src="https://img.shields.io/badge/platform-linux-lightgrey" alt="Platform"></a>
+  <a href="https://github.com/debuman/ommp"><img src="https://img.shields.io/badge/platform-linux-lightgrey" alt="Platform"></a>
 </p>
 
 <p align="center">
@@ -100,7 +100,7 @@ Restart your terminal to apply.
 <summary>Build from source</summary>
 
 ```bash
-git clone https://github.com/sqzer-x/ommp.git
+git clone https://github.com/debuman/ommp.git
 cd ommp
 cargo build --release
 ./target/release/ommp

@@ -1,11 +1,11 @@
-# Maintainer: sqzer (hyukjin an) <110329244+sqzer-x@users.noreply.github.com>
+# Maintainer: sqzer (hyukjin an) <110329244+debuman@users.noreply.github.com>
 
 pkgname=ommp
 pkgver=0.1.3
 pkgrel=1
 pkgdesc="Oh My Music Player — a standalone terminal music player"
 arch=('x86_64' 'aarch64')
-url="https://github.com/sqzer-x/ommp"
+url="https://github.com/debuman/ommp"
 license=('Apache-2.0')
 depends=('gcc-libs' 'glibc' 'alsa-lib')
 makedepends=('cargo')

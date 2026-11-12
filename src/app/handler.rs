@@ -53,7 +53,7 @@ pub fn handle_key_event(key: KeyEvent, app: &App, ui: &mut Ui) -> Vec<AppAction>
             }
             KeyCode::Char('g') => {
                 let _ = std::process::Command::new("xdg-open")
-                    .arg("https://github.com/sqzer-x/ommp")
+                    .arg("https://github.com/debuman/ommp")
                     .stdin(std::process::Stdio::null())
                     .stdout(std::process::Stdio::null())
                     .stderr(std::process::Stdio::null())
@@ -61,7 +61,7 @@ pub fn handle_key_event(key: KeyEvent, app: &App, ui: &mut Ui) -> Vec<AppAction>
             }
             KeyCode::Char('s') => {
                 let _ = std::process::Command::new("xdg-open")
-                    .arg("https://github.com/sponsors/sqzer-x")
+                    .arg("https://github.com/sponsors/debuman")
                     .stdin(std::process::Stdio::null())
                     .stdout(std::process::Stdio::null())
                     .stderr(std::process::Stdio::null())
