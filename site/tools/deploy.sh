@@ -3,7 +3,7 @@
 #
 # gh-pages holds only the built output and shares no history with main; the
 # source is site/ on main. Requires sqzass on PATH (yay -S sqzass, or
-# cargo install --git https://github.com/sqzer-x/sqzass).
+# cargo install --git https://github.com/debuman/sqzass).
 set -euo pipefail
 
 REPO=$(git rev-parse --show-toplevel)
