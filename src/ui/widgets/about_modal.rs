@@ -228,8 +228,8 @@ pub fn render_about_modal(frame: &mut Frame, area: Rect, _theme: &Theme) {
         .add_modifier(Modifier::BOLD);
 
     for (icon, url) in &[
-        ("\u{F09B} ", "https://github.com/sqzer-x/ommp"),
-        ("\u{F004} ", "https://github.com/sponsors/sqzer-x"),
+        ("\u{F09B} ", "https://github.com/debuman/ommp"),
+        ("\u{F004} ", "https://github.com/sponsors/debuman"),
     ] {
         if cur_y < inner.y + inner.height {
             let icon_w = icon.chars().count() as u16;

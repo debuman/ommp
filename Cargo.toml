@@ -2,10 +2,10 @@
 name = "ommp"
 version = "0.1.3"
 edition = "2021"
-authors = ["sqzer-x"]
+authors = ["debuman"]
 description = "Oh My Music Player — a terminal music player built with ratatui"
 license = "Apache-2.0"
-repository = "https://github.com/sqzer-x/ommp"
+repository = "https://github.com/debuman/ommp"
 keywords = ["music", "player", "tui", "terminal", "ratatui"]
 categories = ["command-line-utilities", "multimedia::audio"]
 # 1.2 MB that everyone installing the crate would download, for an image
