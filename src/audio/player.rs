@@ -60,7 +60,7 @@ impl AudioEngine {
 /// every track that ended on its own started the next one at rodio's default
 /// full volume.
 fn player_thread(cmd_rx: Receiver<PlayerCommand>, event_tx: Sender<Event>) {
-    let stream = match OutputStreamBuilder::open_default_stream() {
+    let mut stream = match OutputStreamBuilder::open_default_stream() {
         Ok(s) => s,
         Err(e) => {
             let _ = event_tx.send(Event::Audio(AudioEvent::DeviceError(e.to_string())));
@@ -68,6 +68,7 @@ fn player_thread(cmd_rx: Receiver<PlayerCommand>, event_tx: Sender<Event>) {
         }
     };
 
+    stream.log_on_drop(false);
     let mixer = stream.mixer().clone();
     let position_ticker = tick(Duration::from_millis(250));
 

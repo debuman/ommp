@@ -40,15 +40,17 @@ fn setup_terminal() -> Result<()> {
 /// Undo everything `setup_terminal` did. Best-effort and idempotent so the
 /// panic hook can call it without caring how far setup got.
 fn restore_terminal() {
-    let _ = disable_raw_mode();
     let _ = execute!(
         io::stdout(),
         // Disable mouse motion tracking
         crossterm::style::Print("\x1b[?1003l"),
-        LeaveAlternateScreen,
         DisableMouseCapture,
+        LeaveAlternateScreen,
         crossterm::cursor::Show,
     );
+    // On Windows disabling mouse capture restores the input mode saved at
+    // startup, when raw mode was already active.
+    let _ = disable_raw_mode();
 }
 
 fn main() -> Result<()> {
@@ -83,15 +85,11 @@ fn main() -> Result<()> {
 
     restore_terminal();
 
-    if let Err(e) = result {
-        eprintln!("Error: {}", e);
-    }
-
-    Ok(())
+    result
 }
 
 fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
-    let music_dir = dirs_music_path();
+    let music_dir = dirs_music_path()?;
 
     // Start scanning first: querying the terminal for its image protocol and
     // opening the audio device both round-trip to something outside this
@@ -369,44 +367,24 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> 
         eprintln!("Warning: failed to save state: {}", e);
     }
 
-    // Suppress rodio's "Dropping OutputStream" message:
-    // 1. Redirect stderr to /dev/null, keeping a copy to restore afterwards
-    // 2. Explicitly drop app (triggers AudioEngine → player thread shutdown)
-    // 3. Brief sleep so the player thread can exit and drop OutputStream silently
-    let saved_stderr = unsafe {
-        let devnull = libc::open(c"/dev/null".as_ptr(), libc::O_WRONLY);
-        if devnull >= 0 {
-            let saved = libc::dup(2);
-            libc::dup2(devnull, 2);
-            libc::close(devnull);
-            saved
-        } else {
-            -1
-        }
-    };
-    drop(app);
-    std::thread::sleep(Duration::from_millis(50));
-    // Without this every later stderr write is swallowed, including the error
-    // reported by main and any panic message raised during teardown.
-    if saved_stderr >= 0 {
-        unsafe {
-            libc::dup2(saved_stderr, 2);
-            libc::close(saved_stderr);
-        }
-    }
-
     match draw_error {
         Some(e) => Err(e.into()),
         None => Ok(()),
     }
 }
 
-fn dirs_music_path() -> PathBuf {
+#[cfg(windows)]
+fn dirs_music_path() -> Result<PathBuf> {
+    dirs::audio_dir().ok_or_else(|| anyhow::anyhow!("Windows Music folder is unavailable"))
+}
+
+#[cfg(not(windows))]
+fn dirs_music_path() -> Result<PathBuf> {
     if let Some(home) = std::env::var_os("HOME") {
         let music = PathBuf::from(home).join("Music");
         if music.is_dir() {
-            return music;
+            return Ok(music);
         }
     }
-    PathBuf::from(".")
+    Ok(PathBuf::from("."))
 }

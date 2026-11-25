@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache 2.0"></a>
-  <a href="https://github.com/debuman/ommp"><img src="https://img.shields.io/badge/platform-linux-lightgrey" alt="Platform"></a>
+  <a href="https://github.com/debuman/ommp"><img src="https://img.shields.io/badge/platform-Linux%20%7C%20Windows-lightgrey" alt="Linux and Windows"></a>
 </p>
 
 <p align="center">
@@ -51,7 +51,7 @@ startup; nothing to configure.
 | Protocol | Terminals |
 |----------|-----------|
 | Kitty graphics | [Ghostty](https://ghostty.org/), [Kitty](https://sw.kovidgoyal.net/kitty/), [WezTerm](https://wezterm.org/), Konsole |
-| Sixel | [foot](https://codeberg.org/dnkl/foot), WezTerm, xterm (built with Sixel), Contour |
+| Sixel | Windows Terminal 1.22+, [foot](https://codeberg.org/dnkl/foot), WezTerm, xterm (built with Sixel), Contour |
 | iTerm2 | WezTerm, Konsole |
 
 Anything else falls back to block characters, which still shows the artwork —
@@ -62,30 +62,39 @@ Sixel.
 ### Audio
 
 PulseAudio or ALSA is required for audio output on Linux.
+Windows uses the default audio output device.
 
 ## Install
 
-On Arch Linux:
+On Linux and Windows x64, install or update OMMP with [Cargo](https://rustup.rs/).
 
-```bash
-yay -S ommp
-```
-
-Anywhere else, with [Rust](https://rustup.rs/) installed:
-
-```bash
+```sh
 cargo install ommp
 ```
 
-That's it. Now you can run `ommp` from anywhere:
+Run `ommp` to start the player.
 
-```bash
-ommp
+<details>
+<summary>First-time setup for Windows x64</summary>
+
+Download [setup-windows.ps1](https://github.com/debuman/ommp/raw/refs/heads/main/scripts/setup-windows.ps1)
+and run it once from the download folder in PowerShell. It sets stable Rust GNU as your
+user default and adds any missing GNU build tools to Cargo's `bin` folder.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1
 ```
+
+Open a new PowerShell window and run `cargo install ommp`.
+
+</details>
 
 <details>
 <summary><code>ommp: command not found</code>?</summary>
 
+On Windows, check that `%USERPROFILE%\.cargo\bin` is on `PATH` and reopen PowerShell.
+
+On Linux,
 `~/.cargo/bin` may not be in your PATH. Add this line to your `~/.bashrc` or `~/.zshrc`:
 
 ```bash
@@ -97,20 +106,19 @@ Restart your terminal to apply.
 </details>
 
 <details>
-<summary>Build from source</summary>
+<summary>Install from source</summary>
 
-```bash
-git clone https://github.com/debuman/ommp.git
-cd ommp
-cargo build --release
-./target/release/ommp
+Run this command from the repository directory.
+
+```sh
+cargo install --path .
 ```
 
 </details>
 
 ## Usage
 
-Place your music files in `~/Music` and run `ommp`. It will automatically scan all files and subdirectories.
+Place your files in the Music folder on Windows or `~/Music` on Linux, then run `ommp`. Subfolders are scanned automatically.
 
 Album art comes from the audio files themselves — whatever cover is embedded in the tags. Nothing to place alongside them.
 

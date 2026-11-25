@@ -2,7 +2,7 @@ pub mod handler;
 pub mod persist;
 pub mod state;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
 use crossbeam_channel::Sender;
@@ -34,7 +34,7 @@ pub enum AppAction {
     FocusNext,
     FocusPrev,
     FocusPane(FocusedPane),
-    /// Append to the queue, leaving what is playing alone.
+    /// Append tracks missing from the queue in the order requested.
     AddToQueue(Vec<usize>),
     /// Discard the queue and start over from the given tracks.
     ReplaceQueue(Vec<usize>),
@@ -75,7 +75,7 @@ pub struct App {
     /// The queue pane draws a star per row and asked
     /// `playlists.iter().any(|pl| pl.tracks.contains(..))` for each visible
     /// row — a linear scan of every playlist, per row, per frame.
-    playlist_members: std::collections::HashSet<usize>,
+    playlist_members: HashSet<usize>,
     audio_engine: Option<AudioEngine>,
     event_tx: Option<Sender<Event>>,
 }
@@ -95,7 +95,7 @@ impl App {
             initial_scan_complete: false,
             audio_error: None,
             consecutive_failures: 0,
-            playlist_members: std::collections::HashSet::new(),
+            playlist_members: HashSet::new(),
             audio_engine: None,
             event_tx: None,
         }
@@ -195,7 +195,10 @@ impl App {
             }
             AppAction::AddToQueue(track_indices) => {
                 let was_empty = self.queue.tracks.is_empty();
-                self.queue.tracks.extend(track_indices);
+                let mut queued: HashSet<_> = self.queue.tracks.iter().copied().collect();
+                self.queue.tracks.extend(
+                    track_indices.into_iter().filter(|index| queued.insert(*index)),
+                );
                 // Only take over the current position when there was nothing to
                 // disturb — appending must not interrupt what is playing.
                 if was_empty && !self.queue.tracks.is_empty() {
@@ -642,6 +645,35 @@ mod tests {
         assert_eq!(app.queue.tracks, vec![0, 1, 2, 7, 8]);
         // Appending must leave what is playing alone.
         assert_eq!(app.queue.current_index, Some(1));
+    }
+
+    #[test]
+    fn selecting_all_tracks_again_keeps_one_copy_of_the_playing_track() {
+        use crate::ui::{pane::Pane, panes::library_pane::LibraryPane};
+        use crossterm::event::KeyCode;
+
+        let mut app = app_with_queue(1);
+        app.handle_action(AppAction::PlayQueueIndex(0));
+        app.handle_action(AppAction::Seek(0.5));
+
+        let mut pane = LibraryPane::new();
+        pane.handle_key(KeyCode::Down.into(), &app); // All Tracks
+        let action = pane.handle_key(KeyCode::Enter.into(), &app).unwrap();
+        app.handle_action(action);
+
+        assert_eq!(app.queue.tracks, vec![0]);
+        assert_eq!(app.queue.current_index, Some(0));
+        assert_eq!(app.playback.state, PlayState::Playing);
+        assert_eq!(app.playback.position_secs, 0.5);
+    }
+
+    #[test]
+    fn overlapping_queue_additions_append_each_missing_track_in_order() {
+        let mut app = app_with_queue(4);
+        app.handle_action(AppAction::RemoveFromQueue(3));
+        app.handle_action(AppAction::RemoveFromQueue(2));
+        app.handle_action(AppAction::AddToQueue(vec![1, 3, 0, 3, 2, 2]));
+        assert_eq!(app.queue.tracks, vec![0, 1, 3, 2]);
     }
 
     #[test]

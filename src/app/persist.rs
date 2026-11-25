@@ -61,13 +61,16 @@ pub fn sane_pane_widths(w: [u16; 3]) -> [u16; 3] {
     }
 }
 
-fn state_path() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    PathBuf::from(home).join(".config/ommp/state.json")
+fn state_path() -> Option<PathBuf> {
+    #[cfg(windows)]
+    let base = dirs::config_dir()?;
+    #[cfg(not(windows))]
+    let base = PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| ".".into())).join(".config");
+    Some(base.join("ommp").join("state.json"))
 }
 
 pub fn save(state: &SavedState) -> anyhow::Result<()> {
-    let path = state_path();
+    let path = state_path().ok_or_else(|| anyhow::anyhow!("Configuration directory is unavailable"))?;
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -81,7 +84,7 @@ pub fn save(state: &SavedState) -> anyhow::Result<()> {
 }
 
 pub fn load() -> Option<SavedState> {
-    let path = state_path();
+    let path = state_path()?;
     let data = fs::read_to_string(path).ok()?;
     serde_json::from_str(&data).ok()
 }

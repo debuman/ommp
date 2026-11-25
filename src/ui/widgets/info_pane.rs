@@ -132,14 +132,18 @@ fn render_clock(frame: &mut Frame, area: Rect, _theme: &Theme) {
         .unwrap_or_default()
         .as_secs();
 
-    let (hours, minutes, _) = {
-        let total_secs = now as i64;
-        let mut tm = unsafe { std::mem::zeroed::<libc::tm>() };
-        unsafe {
-            libc::localtime_r(&total_secs as *const i64, &mut tm);
-        }
-        (tm.tm_hour as u32, tm.tm_min as u32, tm.tm_sec as u32)
-    };
+    let Ok(seconds) = libc::time_t::try_from(now) else { return };
+    let mut local = std::mem::MaybeUninit::<libc::tm>::uninit();
+    // Both APIs initialize the caller's buffer on success.
+    #[cfg(windows)]
+    let ok = unsafe { libc::localtime_s(local.as_mut_ptr(), &seconds) == 0 };
+    #[cfg(unix)]
+    let ok = unsafe { !libc::localtime_r(&seconds, local.as_mut_ptr()).is_null() };
+    if !ok {
+        return;
+    }
+    let local = unsafe { local.assume_init() };
+    let (hours, minutes) = (local.tm_hour, local.tm_min);
 
     // Build digit indices: HH:MM
     let digits = [

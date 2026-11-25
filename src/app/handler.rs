@@ -36,6 +36,21 @@ fn is_text_input(key: KeyEvent) -> bool {
     !key.modifiers.contains(KeyModifiers::CONTROL)
 }
 
+fn open_url(url: &str) {
+    #[cfg(windows)]
+    let opener = "explorer.exe";
+    #[cfg(target_os = "macos")]
+    let opener = "open";
+    #[cfg(not(any(windows, target_os = "macos")))]
+    let opener = "xdg-open";
+    let _ = std::process::Command::new(opener)
+        .arg(url)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn();
+}
+
 pub fn handle_key_event(key: KeyEvent, app: &App, ui: &mut Ui) -> Vec<AppAction> {
     let mut actions = Vec::new();
 
@@ -51,22 +66,8 @@ pub fn handle_key_event(key: KeyEvent, app: &App, ui: &mut Ui) -> Vec<AppAction>
             KeyCode::Esc | KeyCode::Char('q') => {
                 ui.show_about_modal = false;
             }
-            KeyCode::Char('g') => {
-                let _ = std::process::Command::new("xdg-open")
-                    .arg("https://github.com/debuman/ommp")
-                    .stdin(std::process::Stdio::null())
-                    .stdout(std::process::Stdio::null())
-                    .stderr(std::process::Stdio::null())
-                    .spawn();
-            }
-            KeyCode::Char('s') => {
-                let _ = std::process::Command::new("xdg-open")
-                    .arg("https://github.com/sponsors/debuman")
-                    .stdin(std::process::Stdio::null())
-                    .stdout(std::process::Stdio::null())
-                    .stderr(std::process::Stdio::null())
-                    .spawn();
-            }
+            KeyCode::Char('g') => open_url("https://github.com/debuman/ommp"),
+            KeyCode::Char('s') => open_url("https://github.com/sponsors/debuman"),
             _ => {}
         }
         return actions;
